@@ -681,6 +681,11 @@ def main():
     html, _ = re.subn(r'<span[^>]*id="headerDate"[^>]*>[^<]*</span>',
                       f'<span class="badge-date" id="headerDate">{ts}</span>', html)
 
+    # Actualizar bloque CSS #kta-ts-css (pseudo-elemento ::after que muestra la fecha)
+    def _update_ts_css(m):
+        return re.sub(r'(content:\s*")[^"]*(")', lambda m2: m2.group(1) + ts + m2.group(2), m.group(0))
+    html = re.sub(r'<style[^>]*id="kta-ts-css"[^>]*>.*?</style>', _update_ts_css, html, flags=re.DOTALL)
+
     HTML_FILE.write_text(html, encoding="utf-8")
     log.info(f"  HTML guardado: {HTML_FILE.stat().st_size:,} bytes")
 

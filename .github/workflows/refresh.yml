@@ -2,8 +2,8 @@ name: Refresh KTA Dashboard
 
 on:
   schedule:
-    # Lunes a viernes 6am hora Colombia (UTC-5) = 11:00 UTC
-    - cron: "0 11 * * 1-5"
+    # Todos los días 6am hora Colombia (UTC-5) = 11:00 UTC
+    - cron: "0 11 * * *"
   workflow_dispatch: {}   # ejecución manual desde la UI de GitHub
 
 jobs:
