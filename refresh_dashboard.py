@@ -684,7 +684,42 @@ def main():
     HTML_FILE.write_text(html, encoding="utf-8")
     log.info(f"  HTML guardado: {HTML_FILE.stat().st_size:,} bytes")
 
-    log.info("[3/3] Listo — subida a Grid pendiente (ejecutar upload_to_grid.py con VPN)")
+    log.info("[3/3] Subiendo a Grid ...")
+    grid_token = os.environ.get("GRID_API_TOKEN", "")
+    if not grid_token:
+        log.warning("  GRID_API_TOKEN no configurado — saltando subida a Grid")
+        return
+
+    try:
+        import requests
+        config = {
+            "skill_version": "3.6.0",
+            "doc_id": "01KPVNJNMB6CA09M9YZW98TH83",
+            "skip_version_check": True,
+        }
+        with open(HTML_FILE, "rb") as fh:
+            resp = requests.post(
+                "https://grid.melioffice.com/api/v1/engine/run",
+                data={"config": json.dumps(config)},
+                files={"file": (HTML_FILE.name, fh, "text/html")},
+                headers={"Authorization": f"Bearer {grid_token}"},
+                timeout=90,
+            )
+        data = resp.json()
+        steps = data.get("steps", [])
+        file_ok = any(
+            s.get("label") in ("file_replaced", "uploaded", "version_uploaded")
+            and s.get("status") == "OK"
+            for s in steps
+        )
+        if data.get("ok") or file_ok:
+            log.info(f"  Grid OK → {data.get('view_url', '')}")
+        else:
+            log.error(f"  Grid rechazó: {data}")
+            if resp.status_code == 401:
+                log.error("  Token expirado — renovar GRID_API_TOKEN en GitHub Secrets")
+    except Exception as e:
+        log.error(f"  Error al subir a Grid: {e}")
 
 
 if __name__ == "__main__":

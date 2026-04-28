@@ -27,6 +27,7 @@ jobs:
       - name: Run refresh script
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GRID_API_TOKEN: ${{ secrets.GRID_API_TOKEN }}
         run: python refresh_dashboard.py
 
       - name: Commit updated dashboard
